@@ -4,6 +4,7 @@ const db = mysql.createConnection({
     user: 'root',
     password: 'mchien2002',
     database: 'db_giasuae',
+    multipleStatements: true
 });
 
 db.connect((error) => {

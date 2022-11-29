@@ -3,7 +3,7 @@ const newClassModel = require('../models/newclass_model');
 const newClassCtrl = {};
 
 newClassCtrl.find = async (req, res) => {
-    await db.query("SELECT * FROM view_newclasses", (error, data) => {
+    await db.query("SELECT * FROM view_newclasses; ", async (error, data, fields) => {
         if (error) {
             console.log(error.message);
             return res.status(500).json({
