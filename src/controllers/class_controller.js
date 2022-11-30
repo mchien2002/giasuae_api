@@ -44,7 +44,8 @@ classCtrl.deleteByID = async (req, res) => {
 }
 
 classCtrl.updateByID = async (req, res) => {
-    await db.query("UPDATE classes SET name = ? WHERE _id = ?", [req.body.name, req.query._id], (error, result) => {
+    const item = new classModel(req.body);
+    await db.query("UPDATE classes SET ? WHERE _id = ?", [item, req.query._id], (error, result) => {
         if (error) {
             console.log(error.message);
             return res.status(500).json({

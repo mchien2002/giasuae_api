@@ -1,9 +1,30 @@
 const db = require('../../cfg/db.config');
 const newClassModel = require('../models/newclass_model');
-const newClassCtrl = {};
+const newClassCtr = {};
 
-newClassCtrl.find = async (req, res) => {
-    await db.query("SELECT * FROM view_newclasses; ", async (error, data, fields) => {
+async function getArray(index, res, data) {
+    index >= 0 ? await db.query("call getClassesByIdNewClass(?); call getSubjectsByIdNewClass(?); call getCategoriesByIdNewClass(?)",
+        [data[index]._id, data[index]._id, data[index]._id],
+        (error, result) => {
+            if (error) {
+                return res.status(500).json({
+                    status: 500,
+                    message: "Some thing went wrong"
+                });
+            } else {
+                console.log(data[index]._id);
+                data[index].classes = result[0];
+                data[index].subjects = result[2];
+                data[index].categories = result[4];
+                console.log(result);
+                index--;
+                getArray(index, res, data);
+            }
+        }) : res.status(200).json(data);
+}
+
+newClassCtr.find = async (req, res) => {
+    await db.query("SELECT * FROM newclasses; ", async (error, data, fields) => {
         if (error) {
             console.log(error.message);
             return res.status(500).json({
@@ -11,12 +32,13 @@ newClassCtrl.find = async (req, res) => {
                 message: "Some thing went wrong"
             })
         } else {
-            return res.status(200).json(data);
+            const index = data.length - 1;
+            getArray(index, res, data);
         }
     });
 }
 
-newClassCtrl.create = async (req, res) => {
+newClassCtr.create = async (req, res) => {
     const itemNC = new newClassModel(req.body);
     await db.query("INSERT INTO newclasses SET ?", itemNC, async (error, data) => {
         if (error) {
@@ -44,7 +66,7 @@ newClassCtrl.create = async (req, res) => {
     });
 }
 
-newClassCtrl.deleteByID = async (req, res) => {
+newClassCtr.deleteByID = async (req, res) => {
     await db.query("DELETE FROM newclasses  WHERE _id = ?", [req.query._id], (error, data) => {
         if (error) {
             console.log(error.message);
@@ -58,7 +80,7 @@ newClassCtrl.deleteByID = async (req, res) => {
     });
 }
 
-newClassCtrl.findByID = async (req, res) => {
+newClassCtr.filter = async (req, res) => {
     await db.query("SELECT * FROM newclasses  WHERE _id = ?", [req.query._id], (error, data) => {
         if (error) {
             console.log(error.message);
@@ -72,10 +94,11 @@ newClassCtrl.findByID = async (req, res) => {
     });
 }
 
-newClassCtrl.updateByID = async (req, res) => {
-    await db.query("UPDATE newclasses SET address = ?, district = ?, sobuoi = ?, time = ?, salary = ?, require = ?, status = ?, contact = ? WHERE _id = ?",
-        [req.body.address, req.body.district, req.body.sobuoi, req.body.time, req.body.salary, req.body.require, req.body.status, req.body.contact, req.query._id],
-        (error, result) => {
+newClassCtr.updateByID = async (req, res) => {
+    const itemNC = new newClassModel(req.body);
+    await db.query("UPDATE newclasses SET ? WHERE _id = ?",
+        [itemNC, req.query._id],
+        async (error, result) => {
             if (error) {
                 console.log(error.message);
                 return res.status(500).json({
@@ -83,9 +106,16 @@ newClassCtrl.updateByID = async (req, res) => {
                     message: "Some thing went wrong"
                 })
             } else {
+                req.body.classes ? await db.query("DELETE FROM classes_of_newclass WHERE _id_newclass = ? ;INSERT INTO classes_of_newclass(_id_newclass, _id_class) VALUES ?",
+                    [req.query._id, req.body.classes.map((item) => [req.query._id, parseInt(item)])]) : null;
+                req.body.subjects ? await db.query("DELETE FROM subjects_of_newclass WHERE _id_newclass = ? ;INSERT INTO subjects_of_newclass(_id_newclass, _id_subject) VALUES ?",
+                    [req.query._id, req.body.subjects.map((item) => [req.query._id, parseInt(item)])]) : null;
+                req.body.categories ? await db.query("DELETE FROM categories_of_newclass WHERE _id_newclass = ? ;INSERT INTO categories_of_newclass(_id_newclass, _id_category) VALUES ?",
+                    [req.query._id, req.body.categories.map((item) => [req.query._id, parseInt(item)])]) : null;
                 return res.status(200).json("Successful");
             }
-        })
+        }
+    )
 }
 
-module.exports = newClassCtrl;
+module.exports = newClassCtr;

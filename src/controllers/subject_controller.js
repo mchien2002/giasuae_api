@@ -42,8 +42,9 @@ subjectCrt.deleteByID = async (req, res) => {
     })
 }
 subjectCrt.updateByID = async (req, res) => {
-    await db.query("UPDATE subjects SET name = ? WHERE _id = ?",
-        [req.body.name, req.query._id], (error, result) => {
+    const item = new subjectModel(req.body);
+    await db.query("UPDATE subjects SET ? WHERE _id = ?",
+        [item, req.query._id], (error, result) => {
             if (error) {
                 console.log(error.message);
                 return res.status(500).json({

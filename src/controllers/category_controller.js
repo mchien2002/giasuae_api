@@ -42,8 +42,9 @@ categoryCtr.deleteByID = async (req, res) => {
     })
 }
 categoryCtr.updateByID = async (req, res) => {
-    await db.query("UPDATE categories SET name = ?, style = ? WHERE _id = ?",
-        [req.body.name, req.body.style, req.query._id], (error, result) => {
+    const item = new categoryModel(req.body);
+    await db.query("UPDATE categories SET ? WHERE _id = ?",
+        [item, req.body.style, req.query._id], (error, result) => {
             if (error) {
                 console.log(error.message);
                 return res.status(500).json({
