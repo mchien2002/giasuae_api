@@ -30,7 +30,7 @@ classCtrl.create = async (req, res) => {
 }
 
 classCtrl.deleteByID = async (req, res) => {
-    await db.query("DELETE FROM classes  WHERE _id = ?", [req.query._id], (error, data) => {
+    await db.query("DELETE FROM classes WHERE _id = ?", [req.query._id], (error, data) => {
         if (error) {
             console.log(error.message);
             return res.status(500).json({

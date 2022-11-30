@@ -10,6 +10,9 @@ const newClassRoutes = require('./src/routes/newclass_routes');
 const categoryRoutes = require('./src/routes/category_routes');
 const subjectRoutes = require('./src/routes/subject_routes');
 const postRoutes = require('./src/routes/post_routes');
+const salRoutes = require('./src/routes/salaryinfo_routes');
+const transRoutes = require('./src/routes/transaction_routes');
+const tutorRoutes = require('./src/routes/tutor_routes');
 const logger = createLogger();
 dotenv.config();
 const PORT = process.env.PORT || 3000;
@@ -42,6 +45,9 @@ app.use(BASE_URL, newClassRoutes);
 app.use(BASE_URL, categoryRoutes);
 app.use(BASE_URL, subjectRoutes);
 app.use(BASE_URL, postRoutes);
+app.use(BASE_URL, salRoutes);
+app.use(BASE_URL, transRoutes);
+app.use(BASE_URL, tutorRoutes);
 
 app.listen((PORT), () => {
     console.log("######  SERVER IS RUNNING  ######");

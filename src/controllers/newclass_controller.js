@@ -7,16 +7,15 @@ async function getArray(index, res, data) {
         [data[index]._id, data[index]._id, data[index]._id],
         (error, result) => {
             if (error) {
+                console.log(error.message);
                 return res.status(500).json({
                     status: 500,
                     message: "Some thing went wrong"
                 });
             } else {
-                console.log(data[index]._id);
                 data[index].classes = result[0];
                 data[index].subjects = result[2];
                 data[index].categories = result[4];
-                console.log(result);
                 index--;
                 getArray(index, res, data);
             }
