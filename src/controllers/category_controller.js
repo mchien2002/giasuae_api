@@ -29,16 +29,18 @@ categoryCtr.create = async (req, res) => {
     })
 }
 categoryCtr.deleteByID = async (req, res) => {
-    await db.query("DELETE FROM categories  WHERE _id = ?", [req.query._id], (error, result) => {
-        if (error) {
-            console.log(error.message);
-            return res.status(500).json({
-                status: 500,
-                message: "Some thing went wrong"
-            })
-        } else {
-            return res.status(200).json("Successful");
-        }
+    trigBeforeDelCategry(req, res, async () => {
+        await db.query("DELETE FROM categories  WHERE _id = ?", [req.query._id], (error, result) => {
+            if (error) {
+                console.log(error.message);
+                return res.status(500).json({
+                    status: 500,
+                    message: "Some thing went wrong"
+                })
+            } else {
+                return res.status(200).json("Successful");
+            }
+        })
     })
 }
 categoryCtr.updateByID = async (req, res) => {
@@ -53,6 +55,21 @@ categoryCtr.updateByID = async (req, res) => {
                 })
             } else {
                 return res.status(200).json("Successful");
+            }
+        })
+}
+
+async function trigBeforeDelCategry(req, res, result) {
+    await db.query("DELETE FROM categories_of_newclass WHERE _id_category = ?; DELETE FROM salaryinfos WHERE _id_category = ?;",
+        [req.query._id, req.query._id], (err, res) => {
+            if (err) {
+                console.log(err.message);
+                return res.status(500).json({
+                    status: 500,
+                    message: "Some thing went wrong"
+                })
+            } else {
+                result();
             }
         })
 }

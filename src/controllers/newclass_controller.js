@@ -1,9 +1,13 @@
 const db = require('../../cfg/db.config');
 const newClassModel = require('../models/newclass_model');
+const routinesCtr = require('./routines_controller');
 const newClassCtr = {};
 
 async function getArray(index, res, data) {
-    index >= 0 ? await db.query("call getClassesByIdNewClass(?); call getSubjectsByIdNewClass(?); call getCategoriesByIdNewClass(?)",
+    index >= 0 ? await db.query(
+        routinesCtr.getClassByIdNewClass(data[index]._id) +
+        routinesCtr.getSubjectByIdNewClass(data[index]._id) +
+        routinesCtr.getCategoriesByIdNewClass(data[index]._id),
         [data[index]._id, data[index]._id, data[index]._id],
         (error, result) => {
             if (error) {
@@ -13,9 +17,10 @@ async function getArray(index, res, data) {
                     message: "Some thing went wrong"
                 });
             } else {
+                console.log(result);
                 data[index].classes = result[0];
-                data[index].subjects = result[2];
-                data[index].categories = result[4];
+                data[index].subjects = result[1];
+                data[index].categories = result[2];
                 index--;
                 getArray(index, res, data);
             }
@@ -66,17 +71,19 @@ newClassCtr.create = async (req, res) => {
 }
 
 newClassCtr.deleteByID = async (req, res) => {
-    await db.query("DELETE FROM newclasses  WHERE _id = ?", [req.query._id], (error, data) => {
-        if (error) {
-            console.log(error.message);
-            return res.status(500).json({
-                status: 500,
-                message: "Some thing went wrong"
-            })
-        } else {
-            return res.status(200).json("Successful");
-        }
-    });
+    trigBeforeDelSubject(req, res, async () => {
+        await db.query("DELETE FROM newclasses WHERE _id = ?", [req.query._id], (error, data) => {
+            if (error) {
+                console.log(error.message);
+                return res.status(500).json({
+                    status: 500,
+                    message: "Some thing went wrong"
+                })
+            } else {
+                return res.status(200).json("Successful");
+            }
+        });
+    })
 }
 
 newClassCtr.filter = async (req, res) => {
@@ -115,6 +122,21 @@ newClassCtr.updateByID = async (req, res) => {
             }
         }
     )
+}
+
+async function trigBeforeDelSubject(req, res, result) {
+    await db.query("DELETE FROM subjects_of_newclass WHERE _id_subject = ?; DELETE FROM subjects_of_tutor WHERE _id_subject = ?;",
+        [req.query._id, req.query._id], (err, res) => {
+            if (err) {
+                console.log(err.message);
+                return res.status(500).json({
+                    status: 500,
+                    message: "Some thing went wrong"
+                })
+            } else {
+                result();
+            }
+        })
 }
 
 module.exports = newClassCtr;

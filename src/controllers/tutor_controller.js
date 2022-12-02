@@ -1,10 +1,12 @@
 const db = require("../../cfg/db.config");
 const tutorModel = require("../models/tutor_model");
+const routinesCtr = require("./routines_controller");
 
 const tutorCtr = {}
 async function regression(index, res, result) {
-    index >= 0 ? await db.query("call getClassesByIdTutor(?); call getSubjectsByIdTutor(?)",
-        [result[index]._id, result[index]._id],
+    index >= 0 ? await db.query(
+        routinesCtr.getClassByIdTutor(result[index]._id) +
+        routinesCtr.getSubjectByIdTutor(result[index]._id),
         (error, resultArr) => {
             if (error) {
                 console.log(error.message);
@@ -84,16 +86,33 @@ tutorCtr.updateByID = async (req, res) => {
     );
 }
 tutorCtr.deleteByID = async (req, res) => {
-    await db.query("DELETE FROM tutors  WHERE _id = ?", [req.query._id], (error, data) => {
-        if (error) {
-            console.log(error.message);
-            return res.status(500).json({
-                status: 500,
-                message: "Some thing went wrong"
-            })
-        } else {
-            return res.status(200).json("Successful");
-        }
-    });
+    trigBeforeDelTutor(req, res, async () => {
+        await db.query("DELETE FROM tutors  WHERE _id = ?", [req.query._id], (error, data) => {
+            if (error) {
+                console.log(error.message);
+                return res.status(500).json({
+                    status: 500,
+                    message: "Some thing went wrong"
+                })
+            } else {
+                return res.status(200).json("Successful");
+            }
+        });
+    })
+}
+
+async function trigBeforeDelTutor(req, res, result) {
+    await db.query("DELETE FROM classes_of_tutor WHERE _id_tutor = ?; DELETE FROM subjects_of_tutor WHERE _id_tutor = ?;",
+        [req.query._id, req.query._id], (err, res) => {
+            if (err) {
+                console.log(err.message);
+                return res.status(500).json({
+                    status: 500,
+                    message: "Some thing went wrong"
+                })
+            } else {
+                result();
+            }
+        })
 }
 module.exports = tutorCtr;

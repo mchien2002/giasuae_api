@@ -30,16 +30,18 @@ classCtrl.create = async (req, res) => {
 }
 
 classCtrl.deleteByID = async (req, res) => {
-    await db.query("DELETE FROM classes WHERE _id = ?", [req.query._id], (error, data) => {
-        if (error) {
-            console.log(error.message);
-            return res.status(500).json({
-                status: 500,
-                message: "Some thing went wrong"
-            })
-        } else {
-            return res.status(200).json("Successful");
-        }
+    trigBeforeDelClass(req, res, async () => {
+        await db.query("DELETE FROM classes WHERE _id = ?", [req.query._id], (error, data) => {
+            if (error) {
+                console.log(error.message);
+                return res.status(500).json({
+                    status: 500,
+                    message: "Some thing went wrong"
+                })
+            } else {
+                return res.status(200).json("Successful");
+            }
+        })
     })
 }
 
@@ -56,6 +58,21 @@ classCtrl.updateByID = async (req, res) => {
             return res.status(200).json("Successful");
         }
     })
+}
+
+async function trigBeforeDelClass(req, res, result) {
+    await db.query("DELETE FROM classes_of_newclass WHERE _id_class = ?; DELETE FROM classes_of_tutor WHERE _id_class = ?;",
+        [req.query._id, req.query._id], (err, res) => {
+            if (err) {
+                console.log(err.message);
+                return res.status(500).json({
+                    status: 500,
+                    message: "Some thing went wrong"
+                })
+            } else {
+                result();
+            }
+        })
 }
 
 module.exports = classCtrl;
