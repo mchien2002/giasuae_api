@@ -17,7 +17,6 @@ async function getArray(index, res, data) {
                     message: "Some thing went wrong"
                 });
             } else {
-                console.log(result);
                 data[index].classes = result[0];
                 data[index].subjects = result[1];
                 data[index].categories = result[2];
