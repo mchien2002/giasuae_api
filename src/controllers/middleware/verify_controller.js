@@ -9,7 +9,6 @@ verifyTokenCtrl.verifyToken = (req, res, next) => {
         jwt.verify(accessToken, process.env.SECRET_KEY_JWT, (err, admin) => {
             if (err) return res.status(403).json("Token is not valid");
             else {
-                console.log("asdasdwdasdafwa");
                 next();
             }
         })
